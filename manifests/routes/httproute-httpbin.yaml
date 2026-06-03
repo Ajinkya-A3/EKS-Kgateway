@@ -1,0 +1,23 @@
+---
+# HTTPRoute attaches to the Gateway above and forwards requests for
+# www.example.com to the httpbin service.
+# Change the hostname to match your domain or NLB DNS name.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: httpbin
+  namespace: httpbin
+spec:
+  parentRefs:
+    - name: aws-cloud
+      namespace: kgateway-system
+  hostnames:
+    - "www.example.com"   # replace with your domain or use "*" for any host
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: httpbin
+          port: 8000

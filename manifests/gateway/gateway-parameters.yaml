@@ -1,0 +1,26 @@
+---
+# GatewayParameters configures the underlying Kubernetes Service that kgateway
+# creates for your Gateway. The annotations here tell the AWS Load Balancer
+# Controller to provision a public-facing NLB with ip target type.
+#
+# NLB target type "ip":
+#   → registers Pod IPs directly in the NLB target group, bypassing NodePort
+#     and kube-proxy entirely. Requires AWS VPC CNI (aws-node) — the default
+#     on EKS managed node groups and Karpenter node pools.
+#
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayParameters
+metadata:
+  name: custom-gw-params
+  namespace: kgateway-system
+spec:
+  kube:
+    service:
+      extraAnnotations:
+        # Hand off LB provisioning to the AWS Load Balancer Controller
+        service.beta.kubernetes.io/aws-load-balancer-type: "external"
+        # Public-facing NLB with internet-routable IPs
+        service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+        # Register Pod IPs directly — no NodePort hop, true client IP, lower latency.
+        # Requires AWS VPC CNI. Switch to "instance" for overlay CNIs (Flannel, Calico VXLAN).
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
